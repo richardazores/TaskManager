@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 
@@ -27,11 +28,8 @@ const taskRoutes = require("./Routes/Tasks");
 app.use("/tasks", taskRoutes);
 
 // Connect to MongoDB
-const dbURI =
-  "mongodb+srv://admin:admin123@taskmanager.woijvqc.mongodb.net/TaskManager?retryWrites=true&w=majority";
-
 mongoose
-  .connect(dbURI)
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("Connected to MongoDB");
     console.log("Server is running on port " + PORT);
