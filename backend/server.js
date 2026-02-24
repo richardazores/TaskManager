@@ -14,10 +14,13 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// ✅ CORS must be before routes
+// ✅ CORS — MUST be before routes
 app.use(
   cors({
-    origin: "http://localhost:5173", // your Vite frontend
+    origin: [
+      "http://localhost:5173", // local Vite frontend
+      "https://task-manager-tau-ruddy.vercel.app", // deployed frontend
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
