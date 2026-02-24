@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { getTasks, createTask, updateTask, deleteTask } from "./api/taskApi";
+import "./App.css";
 
 function App() {
   const [taskList, setTaskList] = useState([]);
@@ -15,9 +17,8 @@ function App() {
   // Fetch tasks from backend
   const fetchTasks = async () => {
     try {
-      const res = await fetch("http://localhost:5000/tasks/all");
-      const data = await res.json();
-      setTaskList(data);
+      const res = await getTasks();
+      setTaskList(res.data);
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
     }
@@ -36,35 +37,28 @@ function App() {
   // Submit create or update
   const handleSubmit = async () => {
     try {
-      let url = "http://localhost:5000/tasks/create";
-      let body = {
-        ...taskForm,
-      };
+      let body = { ...taskForm };
       if (editingTask) {
-        url = "http://localhost:5000/tasks/update";
-        body = { _id: editingTask._id, set: taskForm };
+        // If editing a task, use the `updateTask` API
+        const updatedTask = { _id: editingTask._id, set: taskForm };
+        const res = await updateTask(updatedTask._id, updatedTask.set); // use `updateTask` API directly
+        alert(res.data.message); // Assuming the API returns a `message`
+      } else {
+        // If creating a new task, use the `createTask` API
+        const res = await createTask(body); // Use `createTask` API directly
+        alert(res.data.message); // Assuming the API returns a `message`
       }
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+      setShowModal(false);
+      setEditingTask(null);
+      setTaskForm({
+        title: "",
+        description: "",
+        status: "pending",
+        dueDate: "",
+        assignedTo: "",
       });
-
-      const result = await res.json();
-      if (res.ok) {
-        alert(result.message);
-        setShowModal(false);
-        setEditingTask(null);
-        setTaskForm({
-          title: "",
-          description: "",
-          status: "pending",
-          dueDate: "",
-          assignedTo: "",
-        });
-        fetchTasks(); // refresh
-      }
+      fetchTasks(); // refresh task list
     } catch (err) {
       console.error("Error submitting task:", err);
     }
@@ -87,16 +81,9 @@ function App() {
   const handleDelete = async (_id) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
     try {
-      const res = await fetch("http://localhost:5000/tasks/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id }),
-      });
-      const result = await res.json();
-      if (res.ok) {
-        alert(result.message);
-        fetchTasks();
-      }
+      const res = await deleteTask(_id); // Call the deleteTask function with the _id
+      alert(res.data.message); // Assuming the response contains a message
+      fetchTasks(); // Refresh task list
     } catch (err) {
       console.error("Error deleting task:", err);
     }
@@ -206,6 +193,7 @@ function App() {
               <th>Description</th>
               <th>Assigned To</th>
               <th>Status</th>
+              <th>Created Date</th>
               <th>Due Date</th>
               <th>Actions</th>
             </tr>
@@ -225,6 +213,7 @@ function App() {
                   <td>{task.description}</td>
                   <td>{task.assignedTo}</td>
                   <td>{task.status}</td>
+                  <td>{new Date(task.createdAt).toLocaleDateString()}</td>
                   <td>{new Date(task.dueDate).toLocaleDateString()}</td>
                   <td>
                     <button
