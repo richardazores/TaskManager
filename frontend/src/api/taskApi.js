@@ -1,6 +1,8 @@
+// src/api/taskApi.js
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/tasks";
+// Base URL from Vite env variable
+const BASE_URL = import.meta.env.VITE_API_URL + "/tasks";
 
 export const getTasks = () => axios.get(`${BASE_URL}/all`);
 export const createTask = (task) => axios.post(`${BASE_URL}/create`, task);
